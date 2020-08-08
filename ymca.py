@@ -79,8 +79,10 @@ def book(url, workout_name, name):
     logger.info('Attempting to schedule {} for {}', workout_name, name)
     chrome_options = Options()
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(executable_path=os.path.abspath("webdriver/chromedriver_linux"), options=chrome_options)
+    driver = webdriver.Chrome(executable_path="/root/ymca/webdriver/chromedriver_linux", options=chrome_options)
     driver.get(url)
     sleep(1)
 
