@@ -169,6 +169,7 @@ def book(url, workout_name, name):
 
     driver.find_element_by_class_name('bookButton').click()
     logger.info('Submitted reservation')
+    driver.close()
 
 
 book(FITNESS_URL, FREE_WEIGHTS_NAME, KACPER)
