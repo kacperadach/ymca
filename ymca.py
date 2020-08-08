@@ -8,8 +8,10 @@ from functools import partial
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+BASE_PATH = os.path.dirname(__file__)
+
 logger = logging.getLogger('ymca')
-hdlr = logging.FileHandler(os.path.abspath('ymca.log'))
+hdlr = logging.FileHandler(os.path.join(BASE_PATH, 'ymca.log'))
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
@@ -76,13 +78,13 @@ def alex_time(dt):
 
 
 def book(url, workout_name, name):
-    logger.info('Attempting to schedule {} for {}', workout_name, name)
+    logger.info('Attempting to schedule {} for {}'.format(workout_name, name))
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(executable_path="/root/ymca/webdriver/chromedriver_linux", options=chrome_options)
+    driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver_linux"), options=chrome_options)
     driver.get(url)
     sleep(1)
 
@@ -116,7 +118,7 @@ def book(url, workout_name, name):
         for slot in time_slots:
             time_string = slot.find_element_by_tag_name('span').text
             dt = datetime.strptime(date_string.split('T')[0] + ' ' + time_string, '%Y-%m-%d %I:%M %p')
-            logger.info('Available workout: {}', dt.strftime('%Y-%m-%d %I:%M %p'))
+            logger.info('Available workout: {}'.format(dt.strftime('%Y-%m-%d %I:%M %p')))
             time_func = None
             if name == KACPER:
                 time_func = partial(kacper_time, dt)
@@ -124,7 +126,7 @@ def book(url, workout_name, name):
                 time_func = partial(alex_time, dt)
 
             if time_func is not None and time_func():
-                logger.info('Selected workout: {}', dt.strftime('%Y-%m-%d %I:%M %p'))
+                logger.info('Selected workout: {}'.format(dt.strftime('%Y-%m-%d %I:%M %p')))
                 slot.click()
                 booking_selected = True
                 break
@@ -134,7 +136,7 @@ def book(url, workout_name, name):
         return
 
     user = None
-    with open('users.json', 'r') as f:
+    with open(os.path.join(BASE_PATH, 'users.json'), 'r') as f:
         user_json = json.load(f)
         if name in user_json.keys():
             user = user_json[name]
@@ -165,7 +167,7 @@ def book(url, workout_name, name):
                 option.click()
                 break
 
-    driver.find_element_by_class_name('bookButton').click()
+    # driver.find_element_by_class_name('bookButton').click()
     logger.info('Submitted reservation')
 
 
