@@ -167,7 +167,7 @@ def book(url, workout_name, name):
                 option.click()
                 break
 
-    # driver.find_element_by_class_name('bookButton').click()
+    driver.find_element_by_class_name('bookButton').click()
     logger.info('Submitted reservation')
 
 
