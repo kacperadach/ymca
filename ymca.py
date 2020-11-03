@@ -84,7 +84,7 @@ def book(url, workout_name, name):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver"), options=chrome_options)
+    driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver_linux"), options=chrome_options)
     driver.get(url)
     sleep(1)
 
