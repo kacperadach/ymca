@@ -1,7 +1,7 @@
 import logging
 import os
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from functools import partial
 
@@ -39,24 +39,24 @@ def kacper_time(dt):
             return True
         elif dt.hour == 12 and dt.minute <= 15:
             return True
-    # Tuesday
-    elif dt.weekday == 1:
-        if dt.hour == 11 and dt.minute <= 30:
-            return True
+    # # Tuesday
+    # elif dt.weekday() == 1:
+    #     if dt.hour == 11 and dt.minute <= 30:
+    #         return True
     # Wednesday
-    elif dt.weekday == 2:
+    elif dt.weekday() == 2:
         if dt.hour == 11 and dt.minute >= 30:
             return True
         elif dt.hour == 12 and dt.minute <= 45:
             return True
     # Thursday
-    elif dt.weekday == 3:
-        if dt.hour == 11 and dt.minute >= 30:
-            return True
-        elif dt.hour == 12:
-            return True
+    # elif dt.weekday() == 3:
+    #     if dt.hour == 11 and dt.minute >= 30:
+    #         return True
+    #     elif dt.hour == 12:
+    #         return True
     # Friday
-    elif dt.weekday == 4:
+    elif dt.weekday() == 4:
         if dt.hour == 11 and dt.minute >= 30:
             return True
         elif dt.hour == 12:
@@ -66,7 +66,7 @@ def kacper_time(dt):
 
 
 def alex_time(dt):
-    if dt.weekday == 2:
+    if dt.weekday() == 2:
         return False
 
     if dt.hour == 11 and dt.minute >= 30:
@@ -84,9 +84,13 @@ def book(url, workout_name, name):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver_linux"), options=chrome_options)
+    driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver_windows.exe"), options=chrome_options)
     driver.get(url)
     sleep(1)
+
+    # clear bookings > 14 days
+    clear_past_bookings(name, workout_name)
+    current_bookings = get_current_bookings(name, workout_name)
 
     workout_label = None
     workout_labels = driver.find_elements_by_tag_name("label")
@@ -125,10 +129,18 @@ def book(url, workout_name, name):
             elif name == ALEX:
                 time_func = partial(alex_time, dt)
 
-            if time_func is not None and time_func():
+            date_booked = False
+            for booking in current_bookings:
+                if datetime.strptime(booking['dt'], '%Y-%m-%d %I:%M %p').date() == dt.date():
+                    date_booked = True
+                    logger.info('Date already booked: {}'.format(str(dt.date())))
+                    break
+
+            if time_func is not None and time_func() and not date_booked:
                 logger.info('Selected workout: {}'.format(dt.strftime('%Y-%m-%d %I:%M %p')))
                 slot.click()
                 booking_selected = True
+                add_booking(name, workout_name, dt)
                 break
 
     if booking_selected is False:
@@ -171,5 +183,52 @@ def book(url, workout_name, name):
     logger.info('Submitted reservation')
     driver.quit()
 
+def clear_past_bookings(name, workout):
+    file_name = name + '_' + workout + '.json'
+    if not os.path.isfile(file_name):
+        return
 
-book(FITNESS_URL, FREE_WEIGHTS_NAME, KACPER)
+    data = get_current_bookings(name, workout)
+    filtered_data = []
+    for d in data:
+        dt = datetime.strptime(d['dt'], '%Y-%m-%d %I:%M %p')
+        # old booking
+        if datetime.now() - timedelta(days=14) > dt:
+            continue
+        filtered_data.append(d)
+
+    with open(file_name, 'w') as f:
+        f.write(json.dumps(filtered_data))
+
+
+
+def get_current_bookings(name, workout):
+    file_name = name + '_' + workout + '.json'
+    if not os.path.isfile(file_name):
+        file = open(file_name, 'w+')
+        file.write(json.dumps([]))
+        file.close()
+        return []
+
+    with open(file_name, 'r') as f:
+        return json.loads(f.read())
+
+def add_booking(name, workout, dt):
+    file_name = name + '_' + workout + '.json'
+    if not os.path.isfile(file_name):
+        file = open(file_name, 'w+')
+        file.write(json.dumps([]))
+        file.close()
+
+    data = get_current_bookings(name, workout)
+    data.append({'dt': dt.strftime('%Y-%m-%d %I:%M %p')})
+
+    with open(file_name, 'w') as f:
+        f.write(json.dumps(data))
+
+if __name__ == '__main__':
+    # add_booking(KACPER, FREE_WEIGHTS_NAME, datetime.now())
+    # clear_past_bookings(KACPER, FREE_WEIGHTS_NAME)
+    # print(get_current_bookings(KACPER, FREE_WEIGHTS_NAME))
+    book(FITNESS_URL, FREE_WEIGHTS_NAME, KACPER)
+
