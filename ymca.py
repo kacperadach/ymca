@@ -166,7 +166,7 @@ def book(url, workout_name, name):
 
     inputs = customer_details.find_elements_by_tag_name('input')
     for input in inputs:
-        field = input.get_attribute('aria-label')
+        field = input.get_attribute('Placeholder')
 
         if field == 'Name':
             input.send_keys(name)
