@@ -104,11 +104,16 @@ def book(url, workout_name, name):
     workout_label.click()
     sleep(1)
 
+    time_zone_select = driver.find_elements_by_tag_name('select')[0]
+    for option in time_zone_select.find_elements_by_tag_name('option'):
+        if option.text == '(UTC-05:00) Eastern Time (US & Canada)':
+            option.click()
+            break
+
     calendar = driver.find_element_by_class_name('dates')
     bookable_dates = calendar.find_elements_by_class_name('bookable')
 
     booking_selected = False
-
     for bookable_date in bookable_dates:
         if booking_selected is True:
             break
