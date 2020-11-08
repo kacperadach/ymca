@@ -108,6 +108,7 @@ def book(url, workout_name, name):
     for option in time_zone_select.find_elements_by_tag_name('option'):
         if option.text == '(UTC-05:00) Eastern Time (US & Canada)':
             option.click()
+            sleep(1)
             break
 
     calendar = driver.find_element_by_class_name('dates')
