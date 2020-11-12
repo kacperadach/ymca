@@ -30,9 +30,6 @@ def kacper_time(dt):
     if dt.weekday() >= 5:
         return False
 
-    if dt.hour == 8 and dt.minute >= 30:
-        return True
-
     # Monday
     if dt.weekday() == 0:
         if dt.hour == 11 and dt.minute >= 30:
@@ -81,7 +78,7 @@ def book(url, workout_name, name):
     logger.info('Attempting to schedule {} for {}'.format(workout_name, name))
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
+    # chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
     driver = webdriver.Chrome(executable_path=os.path.join(BASE_PATH, "webdriver/chromedriver_linux"), options=chrome_options)
@@ -187,6 +184,7 @@ def book(url, workout_name, name):
 
     driver.find_element_by_class_name('bookButton').click()
     logger.info('Submitted reservation')
+    driver.close()
     driver.quit()
 
 def clear_past_bookings(name, workout):
